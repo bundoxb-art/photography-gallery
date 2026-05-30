@@ -104,9 +104,20 @@ export default function ClientGallery() {
         {!gallery.cover_image && (
           <>
             <h1 className="text-3xl font-bold mb-2">{gallery.name}</h1>
-            <p className="text-gray-400 mb-8">{photos.length} photos</p>
+            <p className="text-gray-400 mb-2">{photos.length} photos</p>
           </>
         )}
+
+        {/* Download All Button */}
+        <div className="flex justify-between items-center mb-6 mt-4">
+          <p className="text-gray-400 text-sm">Click any photo to view fullscreen</p>
+          
+          <a
+            href={`/api/download-all?galleryId=${gallery.id}&galleryName=${encodeURIComponent(gallery.name)}`}
+            className="bg-white text-black px-4 py-2 rounded-lg font-semibold hover:bg-gray-200 transition text-sm">
+            ⬇️ Download All Photos
+          </a>
+        </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-6">
           {photos.map(photo => (
