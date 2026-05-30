@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { PutObjectCommand } from '@aws-sdk/client-s3'
 import { b2Client, BUCKET_NAME } from '@/lib/b2'
 import { supabase } from '@/lib/supabase'
