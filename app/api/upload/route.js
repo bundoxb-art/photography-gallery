@@ -1,12 +1,26 @@
 export const dynamic = 'force-dynamic'
 
-import { PutObjectCommand } from '@aws-sdk/client-s3'
-import { b2Client, BUCKET_NAME } from '@/lib/b2'
-import { supabase } from '@/lib/supabase'
+import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
+import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
 export async function POST(req) {
   try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    )
+
+    const b2Client = new S3Client({
+      endpoint: `https://${process.env.B2_ENDPOINT}`,
+      region: process.env.B2_REGION,
+      credentials: {
+        accessKeyId: process.env.B2_KEY_ID,
+        secretAccessKey: process.env.B2_APP_KEY,
+      },
+      forcePathStyle: true,
+    })
+
     const formData = await req.formData()
     const file = formData.get('file')
     const galleryId = formData.get('galleryId')
@@ -16,10 +30,10 @@ export async function POST(req) {
 
     const b2Key = `galleries/${galleryId}/${Date.now()}-${file.name}`
 
-    console.log('Uploading to B2:', { bucket: BUCKET_NAME, key: b2Key })
+    console.log('Uploading to B2:', { bucket: process.env.B2_BUCKET_NAME, key: b2Key })
 
     await b2Client.send(new PutObjectCommand({
-      Bucket: BUCKET_NAME,
+      Bucket: process.env.B2_BUCKET_NAME,
       Key: b2Key,
       Body: buffer,
       ContentType: file.type,
