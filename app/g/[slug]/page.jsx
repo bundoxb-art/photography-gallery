@@ -80,13 +80,35 @@ export default function ClientGallery() {
   )
 
   return (
-    <main className="min-h-screen bg-black text-white px-4 py-8">
-      <div className="max-w-5xl mx-auto">
+    <main className="min-h-screen bg-black text-white">
 
-        <h1 className="text-3xl font-bold mb-2">{gallery.name}</h1>
-        <p className="text-gray-400 mb-8">{photos.length} photos</p>
+      {/* Cover Image Hero */}
+      {gallery.cover_image && (
+        <div className="relative w-full h-72 md:h-96 overflow-hidden">
+          <img
+            src={`/api/photo?key=${gallery.cover_image}`}
+            alt="Gallery Cover"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+          <div className="absolute bottom-6 left-6">
+            <h1 className="text-4xl font-bold drop-shadow-lg">{gallery.name}</h1>
+            <p className="text-gray-300 mt-1">{photos.length} photos</p>
+          </div>
+        </div>
+      )}
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+      <div className="max-w-5xl mx-auto px-4 py-8">
+
+        {/* Title if no cover */}
+        {!gallery.cover_image && (
+          <>
+            <h1 className="text-3xl font-bold mb-2">{gallery.name}</h1>
+            <p className="text-gray-400 mb-8">{photos.length} photos</p>
+          </>
+        )}
+
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-6">
           {photos.map(photo => (
             <div
               key={photo.id}

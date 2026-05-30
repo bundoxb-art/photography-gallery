@@ -132,22 +132,49 @@ export default function GalleryManager() {
         {photos.length === 0 ? (
           <p className="text-center text-gray-600">No photos yet — upload some above</p>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {photos.map(photo => (
-              <div key={photo.id} className="relative group rounded-lg overflow-hidden bg-gray-900 aspect-square">
-                <img
-                  src={`/api/photo?key=${photo.b2_key}`}
-                  alt={photo.filename}
-                  className="w-full h-full object-cover"
-                />
-                <button
-                  onClick={() => handleDelete(photo)}
-                  className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-7 h-7 text-xs opacity-0 group-hover:opacity-100 transition">
-                  ✕
-                </button>
-              </div>
-            ))}
-          </div>
+          <>
+            <p className="text-gray-400 text-sm mb-3">
+              💡 Hover a photo and click <strong>Set Cover</strong> to set gallery cover image
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {photos.map(photo => (
+                <div key={photo.id}
+                  className="relative group rounded-lg overflow-hidden bg-gray-900 aspect-square">
+                  <img
+                    src={`/api/photo?key=${photo.b2_key}`}
+                    alt={photo.filename}
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Cover badge */}
+                  {gallery.cover_image === photo.b2_key && (
+                    <div className="absolute top-2 left-2 bg-yellow-500 text-black text-xs px-2 py-1 rounded-full font-semibold">
+                      ⭐ Cover
+                    </div>
+                  )}
+                  {/* Action buttons */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 p-2 opacity-0 group-hover:opacity-100 transition flex gap-2">
+                    <button
+                      onClick={async () => {
+                        await fetch('/api/cover', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ galleryId: id, b2Key: photo.b2_key })
+                        })
+                        setGallery(prev => ({ ...prev, cover_image: photo.b2_key }))
+                      }}
+                      className="flex-1 bg-yellow-500 text-black text-xs py-1 rounded font-semibold">
+                      ⭐ Set Cover
+                    </button>
+                    <button
+                      onClick={() => handleDelete(photo)}
+                      className="bg-red-600 text-white text-xs px-2 py-1 rounded">
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
       </div>
