@@ -131,6 +131,14 @@ export default function ClientGallery() {
           <h1 className="text-3xl font-bold mb-2">{gallery.name}</h1>
         )}
 
+        {/* Personal Message */}
+        {gallery.message && (
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 mb-6 mt-2">
+            <p className="text-gray-400 text-xs mb-2">💌 A message from your photographer</p>
+            <p className="text-white leading-relaxed">{gallery.message}</p>
+          </div>
+        )}
+
         {/* Actions Bar */}
         <div className="flex justify-between items-center mb-6 mt-2">
           <div className="flex gap-2">
@@ -246,6 +254,14 @@ export default function ClientGallery() {
 
               {!gallery.cover_image && (
                 <h1 className="text-3xl font-bold mb-2">{gallery.name}</h1>
+              )}
+
+              {/* Personal Message */}
+              {gallery.message && (
+                <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 mb-6 mt-2">
+                  <p className="text-gray-400 text-xs mb-2">💌 A message from your photographer</p>
+                  <p className="text-white leading-relaxed">{gallery.message}</p>
+                </div>
               )}
 
               {/* Actions Bar */}

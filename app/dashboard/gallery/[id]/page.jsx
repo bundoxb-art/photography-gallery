@@ -103,9 +103,31 @@ export default function GalleryManager() {
         </div>
 
         {/* Client Info */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-6">
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-4">
           <p className="text-gray-400 text-sm mb-1">Client Access Password</p>
           <p className="font-mono text-white">{gallery?.client_password}</p>
+        </div>
+
+        {/* Personal Message */}
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-6">
+          <p className="text-gray-400 text-sm mb-2">💌 Personal Message to Client</p>
+          <textarea
+            placeholder="Write a personal note to your client... (e.g. It was such a pleasure photographing your special day!)"
+            defaultValue={gallery?.message || ''}
+            onBlur={async (e) => {
+              await fetch('/api/message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  galleryId: id,
+                  message: e.target.value
+                })
+              })
+              setGallery(prev => ({ ...prev, message: e.target.value }))
+            }}
+            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white outline-none focus:border-white resize-none h-24 text-sm"
+          />
+          <p className="text-gray-600 text-xs mt-1">Auto-saves when you click away</p>
         </div>
 
         {/* Upload */}
