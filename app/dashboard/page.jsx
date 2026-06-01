@@ -66,8 +66,16 @@ export default function Dashboard() {
               <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-300" />
             </Link>
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-[#c9a84c]/20 border border-[#c9a84c]/30 flex items-center justify-center">
-                <span className="text-[#c9a84c] text-xs font-bold">{initials}</span>
+              <div className="relative">
+                <div className="absolute inset-0 rounded-full animate-ping opacity-20"
+                  style={{ background: '#c9a84c', animationDuration: '3s' }} />
+                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#c9a84c]/50 relative animate-float bg-[#111]">
+                  <img
+                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.user_metadata?.avatar || 'Felix'}&backgroundColor=111111`}
+                    alt="Avatar"
+                    className="w-full h-full"
+                  />
+                </div>
               </div>
               <button onClick={handleLogout}
                 className="text-gray-600 hover:text-white transition text-sm">

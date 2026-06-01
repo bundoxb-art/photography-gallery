@@ -1,0 +1,34 @@
+<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+  <rect width="500" height="500" fill="#0A0A0A"/>
+  <rect x="160" y="95" width="180" height="180" fill="none" stroke="#C9A84C" stroke-width="1.5"/>
+  <line x1="146" y1="95" x2="165" y2="95" stroke="#C9A84C" stroke-width="1.5"/>
+  <line x1="160" y1="81" x2="160" y2="100" stroke="#C9A84C" stroke-width="1.5"/>
+  <line x1="335" y1="95" x2="354" y2="95" stroke="#C9A84C" stroke-width="1.5"/>
+  <line x1="340" y1="81" x2="340" y2="100" stroke="#C9A84C" stroke-width="1.5"/>
+  <line x1="146" y1="275" x2="165" y2="275" stroke="#C9A84C" stroke-width="1.5"/>
+  <line x1="160" y1="270" x2="160" y2="289" stroke="#C9A84C" stroke-width="1.5"/>
+  <line x1="335" y1="275" x2="354" y2="275" stroke="#C9A84C" stroke-width="1.5"/>
+  <line x1="340" y1="270" x2="340" y2="289" stroke="#C9A84C" stroke-width="1.5"/>
+  <line x1="250" y1="87" x2="250" y2="103" stroke="#C9A84C" stroke-width="1" opacity="0.55"/>
+  <line x1="250" y1="267" x2="250" y2="283" stroke="#C9A84C" stroke-width="1" opacity="0.55"/>
+  <line x1="152" y1="185" x2="168" y2="185" stroke="#C9A84C" stroke-width="1" opacity="0.55"/>
+  <line x1="332" y1="185" x2="348" y2="185" stroke="#C9A84C" stroke-width="1" opacity="0.55"/>
+  <circle cx="250" cy="185" r="70" fill="none" stroke="#C9A84C" stroke-width="1.5"/>
+  <line x1="300" y1="185" x2="225" y2="228.3" stroke="#C9A84C" stroke-width="1.05"/>
+  <line x1="275" y1="228.3" x2="200" y2="185" stroke="#C9A84C" stroke-width="1.05"/>
+  <line x1="225" y1="228.3" x2="225" y2="141.7" stroke="#C9A84C" stroke-width="1.05"/>
+  <line x1="200" y1="185" x2="275" y2="141.7" stroke="#C9A84C" stroke-width="1.05"/>
+  <line x1="225" y1="141.7" x2="300" y2="185" stroke="#C9A84C" stroke-width="1.05"/>
+  <line x1="275" y1="141.7" x2="275" y2="228.3" stroke="#C9A84C" stroke-width="1.05"/>
+  <circle cx="300" cy="185" r="2.2" fill="#C9A84C" opacity="0.85"/>
+  <circle cx="275" cy="228.3" r="2.2" fill="#C9A84C" opacity="0.85"/>
+  <circle cx="225" cy="228.3" r="2.2" fill="#C9A84C" opacity="0.85"/>
+  <circle cx="200" cy="185" r="2.2" fill="#C9A84C" opacity="0.85"/>
+  <circle cx="225" cy="141.7" r="2.2" fill="#C9A84C" opacity="0.85"/>
+  <circle cx="275" cy="141.7" r="2.2" fill="#C9A84C" opacity="0.85"/>
+  <circle cx="250" cy="185" r="22" fill="#0A0A0A" stroke="#C9A84C" stroke-width="1.05"/>
+  <circle cx="250" cy="185" r="3.5" fill="#C9A84C"/>
+  <line x1="175" y1="361" x2="325" y2="361" stroke="#C9A84C" stroke-width="0.8" opacity="0.5"/>
+  <text x="250" y="400" font-family="'Didot','Bodoni MT','Playfair Display',Georgia,serif" font-size="30" font-weight="300" fill="#C9A84C" text-anchor="middle" letter-spacing="6">PicDelivr</text>
+  <line x1="175" y1="418" x2="325" y2="418" stroke="#C9A84C" stroke-width="0.8" opacity="0.5"/>
+</svg>

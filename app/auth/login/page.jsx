@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Logo from '@/components/Logo'
 
 export default function Login() {
   const router = useRouter()
@@ -43,13 +44,9 @@ export default function Login() {
         {/* Slideshow */}
         <SlideshowPanel />
 
-        {/* Logo */}
+        {/* Left panel logo */}
         <div className="relative z-20">
-          <Link href="/"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-            className="text-2xl font-bold text-white">
-            Pic<span className="text-[#c9a84c]">Delivr</span>
-          </Link>
+          <Logo href="/" size="sm" />
         </div>
 
         {/* Center quote */}
@@ -92,12 +89,8 @@ export default function Login() {
           }} />
 
         {/* Mobile logo */}
-        <div className="lg:hidden mb-10">
-          <Link href="/"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-            className="text-2xl font-bold text-white">
-            Pic<span className="text-[#c9a84c]">Delivr</span>
-          </Link>
+        <div className="lg:hidden mb-10 flex justify-center">
+          <Logo href="/" size="md" />
         </div>
 
         <div className="relative z-10 w-full max-w-md">
