@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -38,18 +38,13 @@ export default function Login() {
 
       {/* LEFT PANEL */}
       <div className="hidden lg:flex flex-col justify-between w-1/2 relative overflow-hidden p-12"
-        style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #111008 50%, #0d0b04 100%)' }}>
+        style={{ background: '#080808' }}>
 
-        {/* Floating orbs */}
-        <div className="absolute top-20 left-20 w-64 h-64 rounded-full animate-float"
-          style={{ background: 'radial-gradient(circle, rgba(201,168,76,0.15) 0%, transparent 70%)' }} />
-        <div className="absolute bottom-32 right-10 w-96 h-96 rounded-full animate-float"
-          style={{ background: 'radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%)', animationDelay: '2s' }} />
-        <div className="absolute top-1/2 left-1/3 w-48 h-48 rounded-full animate-pulse-gold"
-          style={{ background: 'radial-gradient(circle, rgba(201,168,76,0.06) 0%, transparent 70%)' }} />
+        {/* Slideshow */}
+        <SlideshowPanel />
 
         {/* Logo */}
-        <div className="relative z-10">
+        <div className="relative z-20">
           <Link href="/"
             style={{ fontFamily: "'Playfair Display', serif" }}
             className="text-2xl font-bold text-white">
@@ -58,7 +53,7 @@ export default function Login() {
         </div>
 
         {/* Center quote */}
-        <div className="relative z-10">
+        <div className="relative z-20">
           <div className="w-12 h-px bg-[#c9a84c] mb-8" />
           <h2 style={{ fontFamily: "'Playfair Display', serif" }}
             className="text-4xl font-bold text-white leading-tight mb-6">
@@ -66,13 +61,13 @@ export default function Login() {
             <span className="text-[#c9a84c]">a story worth</span><br />
             preserving."
           </h2>
-          <p className="text-gray-500 text-sm leading-relaxed max-w-sm">
+          <p className="text-gray-400 text-sm leading-relaxed max-w-sm">
             Trusted by photographers across Kenya to deliver stunning galleries to their clients.
           </p>
         </div>
 
         {/* Bottom stats */}
-        <div className="relative z-10 flex gap-8">
+        <div className="relative z-20 flex gap-8">
           {[
             { value: '100%', label: 'Free to Start' },
             { value: 'HD', label: 'Full Quality' },
@@ -220,5 +215,95 @@ export default function Login() {
         </div>
       </div>
     </main>
+  )
+}
+
+const slides = [
+  {
+    url: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80',
+    category: 'Wedding',
+    caption: 'Nairobi, Kenya'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=1200&q=80',
+    category: 'Wedding',
+    caption: 'Mombasa Coast'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1200&q=80',
+    category: 'Wildlife',
+    caption: 'Maasai Mara'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&w=1200&q=80',
+    category: 'Wildlife',
+    caption: 'Amboseli National Park'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=80',
+    category: 'Portrait',
+    caption: 'Studio Session'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=80',
+    category: 'Wedding',
+    caption: 'Lake Nakuru'
+  },
+]
+
+function SlideshowPanel() {
+  const [current, setCurrent] = useState(0)
+  const [fading, setFading] = useState(false)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setFading(true)
+      setTimeout(() => {
+        setCurrent(prev => (prev + 1) % slides.length)
+        setFading(false)
+      }, 800)
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [])
+
+  return (
+    <>
+      {/* Background image */}
+      <div className="absolute inset-0 z-0 transition-opacity duration-[800ms]"
+        style={{ opacity: fading ? 0 : 1 }}>
+        <img
+          src={slides[current].url}
+          alt={slides[current].caption}
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0"
+          style={{ background: 'linear-gradient(to bottom, rgba(8,8,8,0.3) 0%, rgba(8,8,8,0.5) 50%, rgba(8,8,8,0.85) 100%)' }} />
+      </div>
+
+      {/* Photo label */}
+      <div className="absolute top-6 right-6 z-20"
+        style={{ opacity: fading ? 0 : 1, transition: 'opacity 0.8s' }}>
+        <div className="glass rounded-full px-3 py-1 flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#c9a84c]" />
+          <span className="text-white text-xs font-medium">{slides[current].category}</span>
+          <span className="text-gray-400 text-xs">· {slides[current].caption}</span>
+        </div>
+      </div>
+
+      {/* Slide indicators */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+        {slides.map((_, i) => (
+          <button key={i}
+            onClick={() => setCurrent(i)}
+            className="transition-all duration-300"
+            style={{
+              width: i === current ? '24px' : '6px',
+              height: '6px',
+              borderRadius: '3px',
+              background: i === current ? '#c9a84c' : 'rgba(255,255,255,0.3)'
+            }} />
+        ))}
+      </div>
+    </>
   )
 }
