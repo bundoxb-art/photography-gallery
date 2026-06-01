@@ -229,7 +229,6 @@ export default function ClientGallery() {
               </button>
             </div>
           </main>
-        )
 
         return (
           <main className="min-h-screen bg-black text-white">
