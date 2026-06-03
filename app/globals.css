@@ -63,3 +63,25 @@ body {
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255,255,255,0.08);
 }
+
+/* Responsive utilities */
+* { -webkit-tap-highlight-color: transparent; }
+
+html { scroll-behavior: smooth; }
+
+/* Better touch scrolling */
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+
+/* Safe area for notched phones */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@media (max-width: 640px) {
+  .mobile-full { width: 100% !important; }
+  .mobile-stack { flex-direction: column !important; }
+  .mobile-center { text-align: center !important; }
+}
