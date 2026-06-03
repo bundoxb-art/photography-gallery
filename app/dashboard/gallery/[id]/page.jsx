@@ -9,11 +9,17 @@ export default function GalleryManager() {
   const { id } = useParams()
   const [gallery, setGallery] = useState(null)
   const [photos, setPhotos] = useState([])
+  const [sets, setSets] = useState([])
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
   const [activeTab, setActiveTab] = useState('photos')
+  const [newSetName, setNewSetName] = useState('')
+  const [newSetDesc, setNewSetDesc] = useState('')
+  const [creatingSet, setCreatingSet] = useState(false)
+  const [showSetForm, setShowSetForm] = useState(false)
+  const [assigningPhoto, setAssigningPhoto] = useState(null)
 
   useEffect(() => {
     const init = async () => {
@@ -27,6 +33,10 @@ export default function GalleryManager() {
         .from('photos').select('*').eq('gallery_id', id)
         .order('created_at', { ascending: false })
       setPhotos(photosData || [])
+      const { data: setsData } = await supabase
+        .from('sets').select('*').eq('gallery_id', id)
+        .order('order_index', { ascending: true })
+      setSets(setsData || [])
       setLoading(false)
     }
     init()
@@ -38,9 +48,8 @@ export default function GalleryManager() {
     setUploading(true)
     setUploadProgress(0)
     for (let i = 0; i < files.length; i++) {
-      const file = files[i]
       const formData = new FormData()
-      formData.append('file', file)
+      formData.append('file', files[i])
       formData.append('galleryId', id)
       const res = await fetch('/api/upload', { method: 'POST', body: formData })
       const data = await res.json()
@@ -70,6 +79,45 @@ export default function GalleryManager() {
     setGallery(prev => ({ ...prev, cover_image: photo.b2_key }))
   }
 
+  const createSet = async () => {
+    if (!newSetName.trim()) return
+    setCreatingSet(true)
+    const res = await fetch('/api/sets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'create', galleryId: id, name: newSetName, description: newSetDesc })
+    })
+    const data = await res.json()
+    if (data.set) {
+      setSets(prev => [...prev, data.set])
+      setNewSetName('')
+      setNewSetDesc('')
+      setShowSetForm(false)
+    }
+    setCreatingSet(false)
+  }
+
+  const deleteSet = async (setId) => {
+    if (!confirm('Delete this section? Photos will become unassigned.')) return
+    await fetch('/api/sets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete', setId })
+    })
+    setSets(prev => prev.filter(s => s.id !== setId))
+    setPhotos(prev => prev.map(p => p.set_id === setId ? { ...p, set_id: null } : p))
+  }
+
+  const assignToSet = async (photoId, setId) => {
+    await fetch('/api/sets/assign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ photoId, setId })
+    })
+    setPhotos(prev => prev.map(p => p.id === photoId ? { ...p, set_id: setId } : p))
+    setAssigningPhoto(null)
+  }
+
   const copyLink = () => {
     navigator.clipboard.writeText(`${window.location.origin}/g/${gallery.slug}`)
     setCopied(true)
@@ -82,6 +130,8 @@ export default function GalleryManager() {
     </main>
   )
 
+  const unassignedPhotos = photos.filter(p => !p.set_id)
+
   return (
     <main className="min-h-screen bg-[#080808] text-white">
 
@@ -89,8 +139,8 @@ export default function GalleryManager() {
       <div className="fixed inset-0 opacity-[0.03] pointer-events-none"
         style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")` }} />
 
-      {/* Nav */}
-      <nav className="relative z-10 border-b border-gray-900 px-4 md:px-8 py-4 sticky top-0 bg-[#080808]/90 backdrop-blur-md">
+      {/* Sticky Nav */}
+      <nav className="relative z-20 border-b border-gray-900 px-4 md:px-8 py-4 sticky top-0 bg-[#080808]/90 backdrop-blur-md">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
             <button onClick={() => router.push('/dashboard')}
@@ -98,19 +148,16 @@ export default function GalleryManager() {
               ←
             </button>
             <div>
-              <h1 className="font-semibold text-sm md:text-base text-white truncate max-w-[150px] md:max-w-none">
+              <h1 className="font-semibold text-sm md:text-base text-white truncate max-w-[150px] md:max-w-xs">
                 {gallery?.name}
               </h1>
-              <p className="text-gray-600 text-xs">{photos.length} photos</p>
+              <p className="text-gray-600 text-xs">{photos.length} photos · {sets.length} sections</p>
             </div>
           </div>
-
-          <div className="flex items-center gap-2">
-            <button onClick={copyLink}
-              className={`px-3 md:px-4 py-2 rounded-full text-xs font-semibold transition ${copied ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-[#c9a84c] text-black hover:bg-[#d4b460]'}`}>
-              {copied ? '✅ Copied!' : '🔗 Share'}
-            </button>
-          </div>
+          <button onClick={copyLink}
+            className={`px-3 md:px-4 py-2 rounded-full text-xs font-semibold transition ${copied ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-[#c9a84c] text-black hover:bg-[#d4b460]'}`}>
+            {copied ? '✅ Copied!' : '🔗 Share'}
+          </button>
         </div>
       </nav>
 
@@ -118,17 +165,21 @@ export default function GalleryManager() {
 
         {/* Tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
-          {['photos', 'settings'].map(tab => (
-            <button key={tab} onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition capitalize ${activeTab === tab ? 'bg-[#c9a84c] text-black' : 'glass text-gray-400 hover:text-white'}`}>
-              {tab === 'photos' ? `📸 Photos (${photos.length})` : '⚙️ Settings'}
+          {[
+            { key: 'photos', label: `📸 Photos (${photos.length})` },
+            { key: 'sets', label: `🗂️ Sections (${sets.length})` },
+            { key: 'settings', label: '⚙️ Settings' },
+          ].map(tab => (
+            <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+              className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition ${activeTab === tab.key ? 'bg-[#c9a84c] text-black' : 'glass text-gray-400 hover:text-white'}`}>
+              {tab.label}
             </button>
           ))}
         </div>
 
+        {/* PHOTOS TAB */}
         {activeTab === 'photos' && (
           <>
-            {/* Upload Area */}
             <label className="block border-2 border-dashed border-gray-800 rounded-2xl p-6 md:p-10 text-center cursor-pointer hover:border-[#c9a84c]/40 transition mb-6 group">
               <input type="file" multiple accept="image/*" onChange={handleUpload} className="hidden" />
               {uploading ? (
@@ -141,62 +192,208 @@ export default function GalleryManager() {
                 </div>
               ) : (
                 <>
-                  <div className="w-12 h-12 rounded-full glass flex items-center justify-center mx-auto mb-3 group-hover:border-[#c9a84c]/40 transition">
+                  <div className="w-12 h-12 rounded-full glass flex items-center justify-center mx-auto mb-3">
                     <span className="text-xl">📁</span>
                   </div>
                   <p className="text-white text-sm font-medium mb-1">Click to upload photos</p>
-                  <p className="text-gray-600 text-xs">Select multiple photos at once · JPG, PNG, WEBP</p>
+                  <p className="text-gray-600 text-xs">Select multiple photos at once</p>
                 </>
               )}
             </label>
 
-            {/* Photos Grid */}
             {photos.length === 0 ? (
               <div className="text-center py-16 border border-dashed border-gray-800 rounded-2xl">
                 <span className="text-4xl block mb-3">📷</span>
                 <p className="text-gray-500 text-sm">No photos yet — upload some above</p>
               </div>
             ) : (
-              <>
-                <p className="text-gray-600 text-xs mb-3">
-                  💡 Hover/tap a photo to set cover or delete
-                </p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-3">
-                  {photos.map(photo => (
-                    <div key={photo.id}
-                      className="relative group rounded-xl overflow-hidden bg-[#111] aspect-square">
-                      <img
-                        src={`/api/photo?key=${photo.b2_key}`}
-                        alt={photo.filename}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                      {gallery.cover_image === photo.b2_key && (
-                        <div className="absolute top-2 left-2 bg-[#c9a84c] text-black text-xs px-2 py-0.5 rounded-full font-bold">
-                          ⭐
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-2 p-2">
-                        <button onClick={() => setCover(photo)}
-                          className="w-full bg-[#c9a84c] text-black text-xs py-1.5 rounded-lg font-semibold">
-                          ⭐ Set Cover
-                        </button>
-                        <button onClick={() => handleDelete(photo)}
-                          className="w-full bg-red-600/80 text-white text-xs py-1.5 rounded-lg">
-                          🗑️ Delete
-                        </button>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-3">
+                {photos.map(photo => (
+                  <div key={photo.id} className="relative group rounded-xl overflow-hidden bg-[#111] aspect-square">
+                    <img src={`/api/photo?key=${photo.b2_key}`} alt={photo.filename}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+
+                    {/* Set badge */}
+                    {photo.set_id && (
+                      <div className="absolute top-2 left-2 bg-black/70 text-[#c9a84c] text-xs px-2 py-0.5 rounded-full">
+                        {sets.find(s => s.id === photo.set_id)?.name?.slice(0, 10)}
                       </div>
+                    )}
+
+                    {gallery.cover_image === photo.b2_key && (
+                      <div className="absolute top-2 right-2 bg-[#c9a84c] text-black text-xs px-1.5 py-0.5 rounded-full font-bold">⭐</div>
+                    )}
+
+                    <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-1.5 p-2">
+                      <button onClick={() => setCover(photo)}
+                        className="w-full bg-[#c9a84c] text-black text-xs py-1.5 rounded-lg font-semibold">
+                        ⭐ Cover
+                      </button>
+                      {sets.length > 0 && (
+                        <button onClick={() => setAssigningPhoto(photo.id === assigningPhoto ? null : photo.id)}
+                          className="w-full bg-blue-600/80 text-white text-xs py-1.5 rounded-lg">
+                          🗂️ Section
+                        </button>
+                      )}
+                      <button onClick={() => handleDelete(photo)}
+                        className="w-full bg-red-600/80 text-white text-xs py-1.5 rounded-lg">
+                        🗑️ Delete
+                      </button>
                     </div>
-                  ))}
-                </div>
-              </>
+
+                    {/* Section picker */}
+                    {assigningPhoto === photo.id && (
+                      <div className="absolute inset-0 bg-[#080808]/95 flex flex-col gap-1 p-2 overflow-y-auto z-10">
+                        <p className="text-[#c9a84c] text-xs font-semibold mb-1">Assign to section:</p>
+                        <button onClick={() => assignToSet(photo.id, null)}
+                          className={`text-xs py-1.5 rounded-lg px-2 text-left transition ${!photo.set_id ? 'bg-gray-700 text-white' : 'glass text-gray-400 hover:text-white'}`}>
+                          None
+                        </button>
+                        {sets.map(set => (
+                          <button key={set.id} onClick={() => assignToSet(photo.id, set.id)}
+                            className={`text-xs py-1.5 rounded-lg px-2 text-left transition ${photo.set_id === set.id ? 'bg-[#c9a84c] text-black' : 'glass text-gray-400 hover:text-white'}`}>
+                            {set.name}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             )}
           </>
         )}
 
+        {/* SETS TAB */}
+        {activeTab === 'sets' && (
+          <div>
+            {/* Create Set */}
+            <div className="glass rounded-2xl p-5 mb-6">
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <p className="text-white font-semibold text-sm">Gallery Sections</p>
+                  <p className="text-gray-500 text-xs mt-0.5">
+                    Organize photos into moments e.g. Getting Ready, Ceremony, Reception
+                  </p>
+                </div>
+                <button onClick={() => setShowSetForm(!showSetForm)}
+                  className="bg-[#c9a84c] text-black px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-[#d4b460] transition">
+                  + Add Section
+                </button>
+              </div>
+
+              {showSetForm && (
+                <div className="border border-gray-800 rounded-xl p-4 space-y-3">
+                  <input
+                    type="text"
+                    placeholder="Section name (e.g. Church Ceremony)"
+                    value={newSetName}
+                    onChange={e => setNewSetName(e.target.value)}
+                    className="w-full bg-[#151515] border border-gray-800 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#c9a84c]/50 placeholder-gray-600"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Description (optional)"
+                    value={newSetDesc}
+                    onChange={e => setNewSetDesc(e.target.value)}
+                    className="w-full bg-[#151515] border border-gray-800 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#c9a84c]/50 placeholder-gray-600"
+                  />
+                  <div className="flex gap-2">
+                    <button onClick={createSet} disabled={creatingSet || !newSetName.trim()}
+                      className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-black disabled:opacity-50"
+                      style={{ background: 'linear-gradient(135deg, #c9a84c, #d4b460)' }}>
+                      {creatingSet ? 'Creating...' : 'Create Section'}
+                    </button>
+                    <button onClick={() => setShowSetForm(false)}
+                      className="px-4 py-2.5 rounded-xl glass text-gray-400 text-sm">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Sets list */}
+            {sets.length === 0 ? (
+              <div className="text-center py-16 border border-dashed border-gray-800 rounded-2xl">
+                <span className="text-4xl block mb-3">🗂️</span>
+                <p className="text-white font-semibold mb-2">No sections yet</p>
+                <p className="text-gray-500 text-sm max-w-sm mx-auto">
+                  Create sections to organize your gallery by moments like Getting Ready, Ceremony, Reception
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {sets.map(set => {
+                  const setPhotos = photos.filter(p => p.set_id === set.id)
+                  return (
+                    <div key={set.id} className="glass rounded-2xl overflow-hidden">
+                      {/* Set Header */}
+                      <div className="flex justify-between items-center p-4 border-b border-gray-800">
+                        <div>
+                          <h3 className="font-semibold text-white text-sm">{set.name}</h3>
+                          {set.description && (
+                            <p className="text-gray-500 text-xs mt-0.5">{set.description}</p>
+                          )}
+                          <p className="text-[#c9a84c] text-xs mt-1">{setPhotos.length} photos</p>
+                        </div>
+                        <button onClick={() => deleteSet(set.id)}
+                          className="text-gray-600 hover:text-red-400 transition text-sm px-3 py-1">
+                          🗑️
+                        </button>
+                      </div>
+
+                      {/* Set Photos */}
+                      {setPhotos.length === 0 ? (
+                        <div className="p-6 text-center">
+                          <p className="text-gray-600 text-xs">
+                            No photos in this section yet — go to Photos tab and assign photos here
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-1.5 p-3">
+                          {setPhotos.map(photo => (
+                            <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden bg-[#111] group">
+                              <img src={`/api/photo?key=${photo.b2_key}`} alt={photo.filename}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                              <button
+                                onClick={() => assignToSet(photo.id, null)}
+                                className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-xs text-red-400">
+                                Remove
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+
+                {/* Unassigned */}
+                {unassignedPhotos.length > 0 && (
+                  <div className="glass rounded-2xl overflow-hidden border border-dashed border-gray-800">
+                    <div className="p-4 border-b border-gray-800">
+                      <h3 className="font-semibold text-gray-400 text-sm">Unassigned Photos</h3>
+                      <p className="text-gray-600 text-xs mt-0.5">{unassignedPhotos.length} photos not in any section</p>
+                    </div>
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-1.5 p-3">
+                      {unassignedPhotos.map(photo => (
+                        <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden bg-[#111]">
+                          <img src={`/api/photo?key=${photo.b2_key}`} alt={photo.filename}
+                            className="w-full h-full object-cover" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* SETTINGS TAB */}
         {activeTab === 'settings' && (
           <div className="max-w-lg space-y-5">
-
-            {/* Gallery Info */}
             <div className="glass rounded-2xl p-5">
               <p className="text-[#c9a84c] text-xs uppercase tracking-widest mb-4">Gallery Info</p>
               <div className="space-y-3">
@@ -221,19 +418,13 @@ export default function GalleryManager() {
                 <div>
                   <p className="text-gray-500 text-xs mb-1">Client Link</p>
                   <div className="flex items-center gap-2">
-                    <p className="text-gray-400 text-xs font-mono truncate flex-1">
-                      /g/{gallery?.slug}
-                    </p>
-                    <button onClick={copyLink}
-                      className="text-[#c9a84c] text-xs hover:underline whitespace-nowrap">
-                      Copy
-                    </button>
+                    <p className="text-gray-400 text-xs font-mono truncate flex-1">/g/{gallery?.slug}</p>
+                    <button onClick={copyLink} className="text-[#c9a84c] text-xs hover:underline">Copy</button>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Personal Message */}
             <div className="glass rounded-2xl p-5">
               <p className="text-[#c9a84c] text-xs uppercase tracking-widest mb-3">💌 Message to Client</p>
               <textarea
@@ -252,13 +443,10 @@ export default function GalleryManager() {
               <p className="text-gray-600 text-xs mt-2">Auto-saves when you click away</p>
             </div>
 
-            {/* Share */}
             <button onClick={copyLink}
-              className="w-full py-4 rounded-2xl font-semibold text-sm text-black relative overflow-hidden group"
+              className="w-full py-4 rounded-2xl font-semibold text-sm text-black"
               style={{ background: 'linear-gradient(135deg, #c9a84c, #d4b460)' }}>
-              <span className="relative z-10">
-                {copied ? '✅ Link Copied!' : '🔗 Copy Client Link'}
-              </span>
+              {copied ? '✅ Link Copied!' : '🔗 Copy Client Link'}
             </button>
           </div>
         )}
