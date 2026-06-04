@@ -82,17 +82,30 @@ export default function GalleryManager() {
   const createSet = async () => {
     if (!newSetName.trim()) return
     setCreatingSet(true)
-    const res = await fetch('/api/sets', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'create', galleryId: id, name: newSetName, description: newSetDesc })
-    })
-    const data = await res.json()
-    if (data.set) {
-      setSets(prev => [...prev, data.set])
-      setNewSetName('')
-      setNewSetDesc('')
-      setShowSetForm(false)
+    try {
+      const res = await fetch('/api/sets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'create',
+          galleryId: id,
+          name: newSetName.trim(),
+          description: newSetDesc.trim()
+        })
+      })
+      const data = await res.json()
+      console.log('Set creation response:', data)
+      if (data.error) {
+        alert('Error: ' + data.error)
+      } else if (data.set) {
+        setSets(prev => [...prev, data.set])
+        setNewSetName('')
+        setNewSetDesc('')
+        setShowSetForm(false)
+      }
+    } catch (err) {
+      console.error('Set creation error:', err)
+      alert('Failed to create section: ' + err.message)
     }
     setCreatingSet(false)
   }
